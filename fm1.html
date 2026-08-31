@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FM1 | فاميلي فيود للأصدقاء</title>
+<style>
+  :root{
+    --navy:#071a3a;
+    --blue:#0f4fa8;
+    --blue2:#0b3d82;
+    --gold:#f2b72f;
+    --cream:#fff7dd;
+    --white:#ffffff;
+    --red:#d93535;
+    --green:#1f9d55;
+    --shadow:0 12px 28px rgba(0,0,0,.28);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;font-family:Tahoma,Arial,sans-serif;background:
+    radial-gradient(circle at 50% 0%, #163d74 0%, var(--navy) 55%, #031027 100%);
+    color:var(--white);overflow-x:hidden}
+  body{min-height:100vh}
+
+  .app{max-width:1450px;margin:auto;padding:18px 18px 42px}
+  .topbar{
+    display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:14px;align-items:center;
+    margin-bottom:14px
+  }
+  .score-card,.round-card{
+    background:linear-gradient(180deg,var(--blue),var(--blue2));
+    border:3px solid var(--gold);border-radius:18px;padding:12px 16px;text-align:center;
+    box-shadow:var(--shadow)
+  }
+  .score-card .team{font-size:18px;color:var(--gold);font-weight:800}
+  .score-card .score{font-size:38px;font-weight:900;line-height:1.05;margin-top:4px}
+  .round-card .mini{color:#cfe1ff;font-size:14px}
+  .round-card .round-name{font-weight:900;font-size:25px;color:var(--gold);margin:4px 0}
+  .round-card .mult{font-size:16px}
+
+  .brand{
+    text-align:center;margin:12px 0 14px;
+  }
+  .brand h1{
+    margin:0;font-size:clamp(31px,4vw,64px);color:var(--gold);letter-spacing:.5px;
+    text-shadow:0 4px 0 #5b3d00,0 7px 18px rgba(0,0,0,.45)
+  }
+  .brand p{margin:6px 0 0;color:#dce9ff;font-size:15px}
+
+  .question-box{
+    background:linear-gradient(180deg,#ffd965,#f0ae1a);
+    color:#08204c;border-radius:22px;border:4px solid #fff1b5;
+    padding:22px 24px;text-align:center;font-size:clamp(21px,2.3vw,34px);
+    font-weight:900;box-shadow:var(--shadow);margin:0 auto 22px;max-width:1250px
+  }
+
+  .board{
+    display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:1250px;margin:auto
+  }
+  .answer{
+    position:relative;min-height:84px;border-radius:15px;border:3px solid var(--gold);
+    background:linear-gradient(180deg,#e8f1ff,#c8dcff);
+    color:#08204c;display:grid;grid-template-columns:70px 1fr 78px;align-items:center;
+    overflow:hidden;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.18);
+    transition:.15s transform,.15s filter
+  }
+  .answer:hover{transform:translateY(-2px);filter:brightness(1.03)}
+  .answer .num{
+    background:#0b3672;color:white;font-size:30px;font-weight:900;height:100%;
+    display:flex;align-items:center;justify-content:center;border-left:2px solid var(--gold)
+  }
+  .answer .text{font-size:clamp(18px,1.7vw,27px);font-weight:900;padding:10px 16px;text-align:right}
+  .answer .pts{
+    background:#0b3672;color:var(--gold);height:100%;display:flex;align-items:center;
+    justify-content:center;font-size:29px;font-weight:900;border-right:2px solid var(--gold)
+  }
+  .answer.hidden .text{visibility:hidden}
+  .answer.hidden .pts{visibility:hidden}
+  .answer.hidden::after{
+    content:"اضغط للإظهار";position:absolute;inset:0 70px 0 78px;display:flex;
+    align-items:center;justify-content:center;color:#31517e;font-weight:800;font-size:18px
+  }
+
+  .strikes{
+    max-width:760px;margin:20px auto 12px;background:linear-gradient(180deg,#0f4fa8,#0a3472);
+    border:3px solid var(--gold);border-radius:18px;padding:10px 18px;
+    display:flex;align-items:center;justify-content:center;gap:16px;box-shadow:var(--shadow)
+  }
+  .strikes b{color:var(--gold);font-size:19px}
+  .strike{
+    width:56px;height:56px;border-radius:12px;border:2px solid rgba(255,255,255,.45);
+    background:#123b72;display:flex;align-items:center;justify-content:center;
+    font-size:39px;font-weight:900;color:transparent;cursor:pointer;transition:.15s
+  }
+  .strike.active{background:var(--red);color:#fff;border-color:#fff;transform:scale(1.05)}
+
+  .controls{
+    max-width:1250px;margin:16px auto 0;display:grid;grid-template-columns:repeat(4,1fr);
+    gap:10px
+  }
+  button{
+    font:inherit;border:0;border-radius:12px;padding:12px 14px;font-weight:900;cursor:pointer;
+    transition:.15s;box-shadow:0 4px 10px rgba(0,0,0,.18)
+  }
+  button:hover{transform:translateY(-1px);filter:brightness(1.04)}
+  .gold{background:var(--gold);color:#08204c}
+  .blue{background:#1d67c8;color:white}
+  .red{background:var(--red);color:white}
+  .ghost{background:#dfeaff;color:#08204c}
+  .green{background:var(--green);color:white}
+
+  .score-controls{
+    max-width:1250px;margin:10px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:10px
+  }
+  .team-tools{
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    border-radius:14px;padding:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap
+  }
+  .team-tools span{align-self:center;font-weight:800;color:#dce9ff}
+  .small{padding:8px 11px;font-size:14px}
+
+  .host-panel{
+    max-width:1250px;margin:16px auto 0;background:rgba(4,14,34,.8);
+    border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:12px 15px
+  }
+  .host-panel summary{cursor:pointer;color:var(--gold);font-weight:900;font-size:17px}
+  .host-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:12px}
+  .answer-key{
+    background:#fff;color:#0a254f;border-radius:12px;padding:13px;line-height:1.9
+  }
+  .answer-key strong{color:#0b4da2}
+  .shortcut{
+    background:#102d5c;border-radius:12px;padding:13px;color:#dce9ff;line-height:1.8
+  }
+  kbd{background:#fff;color:#0b254c;border-radius:5px;padding:2px 7px;font-weight:900}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;
+    justify-content:center;z-index:50;padding:20px
+  }
+  .overlay.show{display:flex}
+  .strike-popup{
+    font-size:min(35vw,280px);font-weight:900;color:white;text-shadow:0 8px 0 #7a1111;
+    background:var(--red);border:8px solid white;border-radius:40px;width:min(82vw,620px);
+    aspect-ratio:1.25;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 60px rgba(255,0,0,.65)
+  }
+
+  .toast{
+    position:fixed;left:20px;bottom:20px;background:#fff;color:#0a244e;padding:12px 16px;
+    border-radius:12px;box-shadow:var(--shadow);font-weight:800;opacity:0;pointer-events:none;
+    transform:translateY(15px);transition:.2s;z-index:60
+  }
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  .fast-money{display:none;max-width:1250px;margin:auto}
+  .fast-money.show{display:block}
+  .main-game.hide{display:none}
+  .fm-list{display:grid;gap:12px}
+  .fm-item{
+    background:#eef5ff;color:#09214d;border:3px solid var(--gold);border-radius:15px;padding:14px 16px
+  }
+  .fm-q{font-weight:900;font-size:20px;margin-bottom:10px}
+  .fm-answers{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    background:#0f4fa8;color:#fff;border-radius:999px;padding:7px 11px;font-size:14px;
+    border:1px solid #73a8ef
+  }
+
+  footer{text-align:center;color:#9fb6da;font-size:12px;margin-top:25px}
+
+  @media(max-width:900px){
+    .topbar{grid-template-columns:1fr 1fr}
+    .round-card{grid-column:1/-1;grid-row:1}
+    .board{grid-template-columns:1fr}
+    .controls{grid-template-columns:1fr 1fr}
+    .score-controls{grid-template-columns:1fr}
+    .host-grid{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){
+    .app{padding:10px 10px 30px}
+    .answer{grid-template-columns:54px 1fr 62px;min-height:72px}
+    .answer.hidden::after{inset:0 54px 0 62px}
+    .controls{grid-template-columns:1fr}
+    .brand h1{font-size:34px}
+    .score-card .score{font-size:31px}
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <section class="main-game" id="mainGame">
+    <div class="topbar">
+      <div class="score-card">
+        <div class="team" id="teamALabel">الفريق أ</div>
+        <div class="score" id="scoreA">0</div>
+      </div>
+
+      <div class="round-card">
+        <div class="mini">السؤال <span id="qCounter">1</span> من <span id="qTotal"></span></div>
+        <div class="round-name" id="roundName">الجولة الأولى</div>
+        <div class="mult">النقاط × <span id="multiplier">1</span></div>
+      </div>
+
+      <div class="score-card">
+        <div class="team" id="teamBLabel">الفريق ب</div>
+        <div class="score" id="scoreB">0</div>
+      </div>
+    </div>
+
+    <div class="brand">
+      <h1>فاميلي فيود للأصدقاء</h1>
+      <p>نسخة خاصة للتجمعات — خفيفة، محرجة شوي، وممتعة</p>
+    </div>
+
+    <div class="question-box" id="question">...</div>
+
+    <div class="board" id="board"></div>
+
+    <div class="strikes">
+      <b>الأخطاء</b>
+      <div class="strike" data-i="0">✕</div>
+      <div class="strike" data-i="1">✕</div>
+      <div class="strike" data-i="2">✕</div>
+    </div>
+
+    <div class="controls">
+      <button class="ghost" id="prevBtn">السؤال السابق</button>
+      <button class="gold" id="revealAllBtn">إظهار كل الإجابات</button>
+      <button class="red" id="strikeBtn">✕ خطأ</button>
+      <button class="blue" id="nextBtn">السؤال التالي</button>
+    </div>
+
+    <div class="score-controls">
+      <div class="team-tools">
+        <span>الفريق أ:</span>
+        <button class="small green" data-score="A" data-delta="round">+ نقاط الجولة</button>
+        <button class="small blue" data-score="A" data-delta="10">+10</button>
+        <button class="small ghost" data-score="A" data-delta="-10">-10</button>
+      </div>
+
+      <div class="team-tools">
+        <span>الفريق ب:</span>
+        <button class="small green" data-score="B" data-delta="round">+ نقاط الجولة</button>
+        <button class="small blue" data-score="B" data-delta="10">+10</button>
+        <button class="small ghost" data-score="B" data-delta="-10">-10</button>
+      </div>
+    </div>
+
+    <details class="host-panel">
+      <summary>لوحة المقدم / مفتاح الإجابات</summary>
+      <div class="host-grid">
+        <div class="answer-key" id="answerKey"></div>
+        <div class="shortcut">
+          <strong style="color:#f2b72f">اختصارات:</strong><br>
+          <kbd>1</kbd> إلى <kbd>6</kbd> إظهار الإجابات<br>
+          <kbd>X</kbd> إضافة خطأ<br>
+          <kbd>→</kbd> السؤال التالي<br>
+          <kbd>←</kbd> السؤال السابق<br>
+          <kbd>A</kbd> جميع الإجابات<br>
+          <kbd>F</kbd> المال السريع
+        </div>
+      </div>
+    </details>
+
+    <div class="controls" style="margin-top:12px">
+      <button class="ghost" id="resetRoundBtn">إعادة الجولة</button>
+      <button class="ghost" id="resetScoresBtn">تصفير النتائج</button>
+      <button class="gold" id="fastMoneyBtn">المال السريع</button>
+      <button class="blue" id="fullscreenBtn">ملء الشاشة</button>
+    </div>
+  </section>
+
+  <section class="fast-money" id="fastMoney">
+    <div class="brand">
+      <h1>المال السريع</h1>
+      <p>لاعبان — نفس الأسئلة — الهدف 200 نقطة</p>
+    </div>
+
+    <div class="question-box">اختر أفضل إجابة بسرعة</div>
+
+    <div class="fm-list" id="fmList"></div>
+
+    <div class="controls" style="margin-top:18px">
+      <button class="gold" id="showFmBtn">إظهار الإجابات المقترحة</button>
+      <button class="blue" id="backGameBtn">العودة للعبة</button>
+    </div>
+  </section>
+
+  <footer>FM1 — ملف واحد جاهز لـ GitHub Pages</footer>
+</div>
+
+<div class="overlay" id="strikeOverlay">
+  <div class="strike-popup">✕</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const QUESTIONS = [
+  {
+    q:"اذكر شيئًا يتظاهر الناس بأنهم يعرفون عنه الكثير في أول موعد.",
+    round:"الجولة الأولى", mult:1,
+    a:[["الأفلام والمسلسلات",26],["الموسيقى",20],["السفر",18],["الأكل والمطاعم",16],["الكتب",11],["الرياضة",9]]
+  },
+  {
+    q:"اذكر شيئًا يفحصه الناس قبل نشر صورة لهم.",
+    round:"الجولة الأولى", mult:1,
+    a:[["شكلهم في الصورة",31],["الإضاءة",22],["من يظهر في الخلفية",17],["الكابشن",13],["كم لايك ممكن تجيب",10],["اللبس",7]]
+  },
+  {
+    q:"اذكر شيئًا يختلف عليه الأصدقاء غالبًا في السفر.",
+    round:"الجولة الثانية", mult:1,
+    a:[["وين يأكلون",28],["مين يدفع",20],["الأغاني",16],["وقت الصحوة",14],["اختيار الغرفة أو السرير",12],["أماكن التصوير",10]]
+  },
+  {
+    q:"اذكر شيئًا لا يجب أن تقوله أبدًا في حفل زواج.",
+    round:"الجولة الثانية", mult:1,
+    a:[["كنت أفضل الإكس",29],["متى الطلاق؟",21],["الأكل سيئ",18],["شكلك تعبان",13],["بمشي بدري",10],["الحفل ممل",9]]
+  },
+  {
+    q:"اذكر شيئًا قد يكذب الناس بشأنه في تطبيقات التعارف.",
+    round:"الجولة الثالثة", mult:2,
+    a:[["الطول",27],["العمر",20],["نية العلاقة",18],["الوظيفة أو الدخل",15],["حداثة الصور",12],["الهوايات",8]]
+  },
+  {
+    q:"اذكر شيئًا يقتل الجو في ليلة رومانسية.",
+    round:"الجولة الثالثة", mult:2,
+    a:[["الانشغال بالجوال",25],["رائحة سيئة",21],["الكلام عن الشغل",17],["النعاس والتعب",14],["مشكلة في الأكل أو الطلب",12],["الصمت المحرج",11]]
+  },
+  {
+    q:"اذكر شيئًا يحكم الناس عليه سرًا عند مقابلة شخص لأول مرة.",
+    round:"الجولة الرابعة", mult:2,
+    a:[["اللبس والستايل",24],["الأسلوب والأخلاق",21],["الأسنان أو الابتسامة",17],["الثقة بالنفس",15],["الصوت",12],["الرائحة",11]]
+  },
+  {
+    q:"اذكر شيئًا قد تجده في سيارة شخص فوضوي جدًا.",
+    round:"الجولة الرابعة", mult:2,
+    a:[["قوارير وأكواب",27],["فواتير وإيصالات",20],["ملابس أو شنطة نادي",18],["أغلفة أكل",14],["شواحن عشوائية",12],["رمل وغبار",9]]
+  },
+  {
+    q:"اذكر شيئًا تتمنى ألا يراه أحد في سجل بحثك.",
+    round:"الجولة الخامسة", mult:3,
+    a:[["أسئلة طبية محرجة",24],["أسئلة غريبة آخر الليل",20],["البحث عن الإكس",17],["مشتريات محرجة",14],["نصائح علاقات",13],["أخبار مشاهير",12]]
+  },
+  {
+    q:"اذكر أول شيء يفعله أغلب الناس لحظة وصولهم إلى البيت.",
+    round:"الجولة الخامسة", mult:3,
+    a:[["خلع الحذاء",28],["فتح الثلاجة",19],["التمدد على السرير أو الكنبة",18],["تغيير الملابس",14],["الذهاب للحمام",12],["تفقد الجوال",9]]
+  },
+  {
+    q:"اذكر شيئًا ممكن يخلي شخص يسوي نفسه مشغول عشان يتهرب من طلعة.",
+    round:"جولة إضافية", mult:3,
+    a:[["تعبان",26],["عندي شغل",22],["أهلي عندهم مناسبة",18],["عندي دوام بدري",14],["السيارة فيها مشكلة",11],["ما شفت الرسالة",9]]
+  },
+  {
+    q:"اذكر أكثر شيء يرفع ضغطك في قروب الواتساب.",
+    round:"جولة إضافية", mult:3,
+    a:[["الرسائل الصوتية الطويلة",27],["الرد بعد ساعات",21],["تغيير الخطة آخر لحظة",18],["السبام والستيكرات",14],["قراءة بدون رد",11],["إرسال صور قديمة محرجة",9]]
+  },
+  {
+    q:"اذكر شيئًا قد يجعلك تندم صباح اليوم التالي بعد سهرة قوية.",
+    round:"جولة إضافية", mult:3,
+    a:[["قلة النوم",27],["صرف فلوس كثير",21],["رسالة أرسلتها",18],["أكل كثير",14],["صور أو فيديوهات محرجة",12],["موعد بدري",8]]
+  },
+  {
+    q:"اذكر شيئًا قد يكتشفه شخص عن شريكه ويقول: كان المفروض أعرف من البداية.",
+    round:"جولة إضافية", mult:3,
+    a:[["الغيرة الزايدة",24],["العصبية",21],["الكذب",20],["البخل",14],["الإدمان على الجوال",12],["عدم النظافة",9]]
+  },
+  {
+    q:"اذكر سببًا سخيفًا ممكن يخلي شخصين يزعلون من بعض.",
+    round:"جولة إضافية", mult:3,
+    a:[["تأخر بالرد",27],["من اختار المطعم",21],["مين يجلس قدام",17],["ما سوى لايك",14],["مباراة أو فريق",12],["أخذ شيء بدون استئذان",9]]
+  }
+];
+
+const FAST_MONEY = [
+  {q:"اذكر سببًا قد يجعل شخصًا يتأخر عن حفلة.", a:[["الزحمة",38],["تأخر في التجهيز",24],["ما لقى موقف",16],["نام زيادة",12],["نسي الوقت",10]]},
+  {q:"اذكر شيئًا ينساه الناس كثيرًا عند تجهيز شنطة السفر.", a:[["الشاحن",31],["فرشاة الأسنان",25],["الملابس الداخلية",17],["الهوية أو الجواز",15],["واقي الشمس",12]]},
+  {q:"اذكر مكانًا ممكن يحصل فيه تعارف أو فليرت.", a:[["كافيه",29],["حفلة",26],["العمل",18],["النادي",15],["زواج أو مناسبة",12]]},
+  {q:"اذكر شيئًا تفعله قبل وصول الضيوف.", a:[["تنظيف البيت",36],["إخفاء الفوضى",22],["تجهيز الأكل",18],["تعطير المكان",14],["تغيير اللبس",10]]},
+  {q:"اذكر شيئًا يصرف الناس عليه أكثر من اللازم.", a:[["طلبات الأكل",30],["الملابس",24],["القهوة",18],["الأجهزة",16],["العطور",12]]}
+];
+
+let current = 0;
+let scoreA = 0;
+let scoreB = 0;
+let strikes = 0;
+let revealed = new Set();
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+function currentRoundPoints(){
+  const q = QUESTIONS[current];
+  return q.a.reduce((sum,[,pts],i)=>sum+(revealed.has(i)?pts:0),0)*q.mult;
+}
+
+function render(){
+  const item = QUESTIONS[current];
+  $("#question").textContent = item.q;
+  $("#roundName").textContent = item.round;
+  $("#multiplier").textContent = item.mult;
+  $("#qCounter").textContent = current+1;
+  $("#qTotal").textContent = QUESTIONS.length;
+  $("#scoreA").textContent = scoreA;
+  $("#scoreB").textContent = scoreB;
+
+  const board = $("#board");
+  board.innerHTML = "";
+
+  item.a.forEach(([text,pts],i)=>{
+    const card = document.createElement("div");
+    card.className = "answer" + (revealed.has(i) ? "" : " hidden");
+    card.innerHTML = `
+      <div class="num">${i+1}</div>
+      <div class="text">${text}</div>
+      <div class="pts">${pts*item.mult}</div>
+    `;
+    card.addEventListener("click",()=>toggleAnswer(i));
+    board.appendChild(card);
+  });
+
+  $$(".strike").forEach((el,i)=>el.classList.toggle("active", i<strikes));
+
+  $("#answerKey").innerHTML =
+    `<strong>الإجابات الأصلية:</strong><br>` +
+    item.a.map(([t,p],i)=>`${i+1}. ${t} — ${p} نقطة${item.mult>1?` × ${item.mult}`:""}`).join("<br>") +
+    `<hr><strong>مجموع النقاط المكشوفة حاليًا:</strong> ${currentRoundPoints()}`;
+
+  $("#prevBtn").disabled = current===0;
+  $("#nextBtn").disabled = current===QUESTIONS.length-1;
+}
+
+function toggleAnswer(i){
+  if(revealed.has(i)) revealed.delete(i); else revealed.add(i);
+  render();
+}
+
+function showToast(msg){
+  const t=$("#toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>t.classList.remove("show"),1700);
+}
+
+function addStrike(){
+  if(strikes<3) strikes++;
+  render();
+  const ov=$("#strikeOverlay");
+  ov.classList.add("show");
+  setTimeout(()=>ov.classList.remove("show"),750);
+}
+
+function resetRound(){
+  strikes=0;
+  revealed.clear();
+  render();
+}
+
+function nextQuestion(){
+  if(current<QUESTIONS.length-1){current++;resetRound()}
+}
+
+function prevQuestion(){
+  if(current>0){current--;resetRound()}
+}
+
+$("#revealAllBtn").onclick=()=>{revealed=new Set(QUESTIONS[current].a.map((_,i)=>i));render()};
+$("#strikeBtn").onclick=addStrike;
+$("#nextBtn").onclick=nextQuestion;
+$("#prevBtn").onclick=prevQuestion;
+$("#resetRoundBtn").onclick=resetRound;
+$("#resetScoresBtn").onclick=()=>{scoreA=0;scoreB=0;render();showToast("تم تصفير النتائج")};
+
+$$("[data-score]").forEach(btn=>{
+  btn.onclick=()=>{
+    const team=btn.dataset.score;
+    const delta=btn.dataset.delta==="round" ? currentRoundPoints() : Number(btn.dataset.delta);
+    if(team==="A") scoreA=Math.max(0,scoreA+delta);
+    else scoreB=Math.max(0,scoreB+delta);
+    render();
+    showToast(`${team==="A"?"الفريق أ":"الفريق ب"}: ${delta>=0?"+":""}${delta}`);
+  };
+});
+
+$$(".strike").forEach(el=>el.onclick=()=>{
+  const i=Number(el.dataset.i);
+  strikes = strikes===i+1 ? i : i+1;
+  render();
+});
+
+$("#fullscreenBtn").onclick=()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+};
+
+function showFastMoney(){
+  $("#mainGame").classList.add("hide");
+  $("#fastMoney").classList.add("show");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function backGame(){
+  $("#fastMoney").classList.remove("show");
+  $("#mainGame").classList.remove("hide");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#fastMoneyBtn").onclick=showFastMoney;
+$("#backGameBtn").onclick=backGame;
+
+let fmShown=false;
+function renderFM(){
+  const root=$("#fmList");
+  root.innerHTML="";
+  FAST_MONEY.forEach((item,idx)=>{
+    const div=document.createElement("div");
+    div.className="fm-item";
+    div.innerHTML=`<div class="fm-q">${idx+1}. ${item.q}</div>
+      <div class="fm-answers">${fmShown ? item.a.map(([a,p])=>`<span class="chip">${a} — ${p}</span>`).join("") : '<span class="chip">الإجابات مخفية</span>'}</div>`;
+    root.appendChild(div);
+  });
+}
+$("#showFmBtn").onclick=()=>{
+  fmShown=!fmShown;
+  $("#showFmBtn").textContent=fmShown?"إخفاء الإجابات":"إظهار الإجابات المقترحة";
+  renderFM();
+};
+
+document.addEventListener("keydown",e=>{
+  if($("#fastMoney").classList.contains("show")){
+    if(e.key.toLowerCase()==="f") backGame();
+    return;
+  }
+  if(["1","2","3","4","5","6"].includes(e.key)){
+    const i=Number(e.key)-1;
+    if(i<QUESTIONS[current].a.length) toggleAnswer(i);
+  }
+  if(e.key.toLowerCase()==="x") addStrike();
+  if(e.key.toLowerCase()==="a"){revealed=new Set(QUESTIONS[current].a.map((_,i)=>i));render()}
+  if(e.key.toLowerCase()==="f") showFastMoney();
+  if(e.key==="ArrowRight") nextQuestion();
+  if(e.key==="ArrowLeft") prevQuestion();
+});
+
+$("#strikeOverlay").onclick=()=>$("#strikeOverlay").classList.remove("show");
+
+renderFM();
+render();
+</script>
+</body>
+</html>
