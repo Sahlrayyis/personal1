@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FM1 | TV</title>
+<style>
+:root{--night:#020815;--navy:#061733;--blue:#1057b7;--blue2:#0a3b80;--gold:#ffd34e;--red:#ee3340;--white:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif;background:var(--night);color:white}
+body{background:radial-gradient(circle at 50% -15%,#1c62b8 0,#0a2b5e 26%,#061733 55%,#020815 100%)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.024) 1px,transparent 1px);background-size:44px 44px}
+.stage{width:100vw;height:100vh;padding:10px 12px;display:grid;grid-template-rows:84px 70px 82px minmax(0,1fr) 70px;gap:8px}
+.header{display:grid;grid-template-columns:1fr 1.18fr 1fr;gap:10px;direction:ltr}
+.scorebox,.roundbox{border:4px solid var(--gold);border-radius:20px;background:linear-gradient(180deg,#1561bc,#0a3677);box-shadow:0 12px 28px rgba(0,0,0,.34);direction:rtl}
+.scorebox{display:flex;align-items:center;justify-content:center;gap:18px} .scorebox b{color:var(--gold);font-size:20px} .score{font-size:46px;font-weight:1000}
+.roundbox{display:flex;align-items:center;justify-content:center;text-align:center} .roundbox small{display:block;color:#d9eaff;font-size:14px} .roundbox strong{display:block;color:var(--gold);font-size:27px;line-height:1.1;margin:2px 0}
+.logo{display:flex;align-items:center;justify-content:center} .logoInner{height:58px;min-width:min(520px,48vw);padding:4px 28px;border:5px solid var(--gold);border-radius:999px;background:linear-gradient(#176fd1,#0b3e84);display:flex;align-items:center;justify-content:center;font-size:39px;font-weight:1000;letter-spacing:.5px;box-shadow:0 0 0 5px #754900,0 12px 30px rgba(0,0,0,.38)} .logoInner span{color:var(--gold)}
+.question{border:4px solid var(--gold);border-radius:18px;background:linear-gradient(#ffe68b,#f2b52f);color:#08224e;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px 20px;font-size:29px;font-weight:1000;line-height:1.25;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+.question.hidden{color:transparent;position:relative} .question.hidden:after{content:"استعدوا للسؤال...";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#345784;font-size:23px}
+.board{
+  min-height:0;
+  border:4px solid #2b65ac;
+  border-radius:22px;
+  background:linear-gradient(#082b62,#041a3d);
+  padding:10px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  gap:10px;
+  direction:rtl
+}
+.answer{
+  position:relative;
+  overflow:hidden;
+  border:3px solid var(--gold);
+  border-radius:14px;
+  background:linear-gradient(#eef7ff,#c7defb);
+  min-height:0;
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr) 78px;
+  align-items:center;
+  color:#08224e;
+  direction:rtl;
+  transform-style:preserve-3d
+}
+.num,.pts{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(#14519e,#082e68);font-weight:1000;font-size:27px} .num{color:#fff} .pts{color:var(--gold)}
+.text{padding:7px 13px;font-size:clamp(18px,1.7vw,26px);font-weight:1000;text-align:right;line-height:1.2}
+.answer.hidden{background:linear-gradient(#1557aa,#0a3475)}
+.answer.hidden .num,.answer.hidden .text,.answer.hidden .pts{visibility:hidden}
+.answer.hidden .cover{display:flex}
+.cover{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(#1557aa,#0a3475);color:var(--gold);font-size:38px;font-weight:1000;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.answer.anim{animation:flip .62s ease} @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(88deg)}100%{transform:none}}
+.bottom{display:grid;grid-template-columns:1fr 80px 1fr;gap:10px;align-items:center;direction:ltr}
+.strikes,.pot{height:62px;border:4px solid var(--gold);border-radius:16px;background:linear-gradient(#0e4e9d,#082f69);display:flex;align-items:center;justify-content:center;gap:11px;direction:rtl}
+.x{width:44px;height:44px;border-radius:9px;border:2px solid rgba(255,255,255,.42);display:flex;align-items:center;justify-content:center;font-size:31px;color:transparent} .x.on{background:var(--red);border-color:#fff;color:#fff}
+.timer{width:66px;height:66px;border-radius:50%;border:4px solid var(--gold);background:#092f69;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:1000} .timer.danger{background:var(--red);border-color:#fff}
+.pot span{font-size:13px;color:#dcecff} .pot strong{font-size:31px;color:var(--gold)}
+.overlay{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.68)} .overlay.show{display:flex} .wrong{width:min(520px,70vw);aspect-ratio:1.25;border-radius:32px;border:8px solid #fff;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:230px;font-weight:1000;text-shadow:0 8px 0 #7b1119;animation:pop .4s ease} .buzz{padding:38px 70px;border-radius:28px;border:8px solid var(--gold);background:#fff;color:#08245a;font-size:72px;font-weight:1000;animation:pop .3s ease} @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.start{position:fixed;inset:0;z-index:60;background:radial-gradient(circle,#123f7e,#020815 70%);display:flex;align-items:center;justify-content:center} .start button{border:5px solid var(--gold);border-radius:22px;background:#1057b7;color:#fff;padding:22px 34px;font-size:27px;font-weight:1000;cursor:pointer;box-shadow:0 0 45px rgba(255,211,78,.28)}
+.conf{position:fixed;top:-20px;z-index:45;width:10px;height:18px;animation:fall linear forwards} @keyframes fall{to{transform:translate(var(--d),110vh) rotate(920deg)}}
+@media(max-height:760px){.stage{grid-template-rows:70px 56px 66px minmax(0,1fr) 58px;gap:6px;padding:7px 9px}.scorebox b{font-size:16px}.score{font-size:37px}.roundbox strong{font-size:22px}.logoInner{height:48px;font-size:32px}.question{font-size:23px}.board{padding:7px;gap:7px}.text{font-size:18px}.bottom{grid-template-columns:1fr 68px 1fr}.strikes,.pot{height:54px}.timer{width:56px;height:56px;font-size:24px}}
+
+.board .answer:nth-child(odd){grid-column:1}
+.board .answer:nth-child(even){grid-column:2}
+.board .answer:nth-child(1),.board .answer:nth-child(2){grid-row:1}
+.board .answer:nth-child(3),.board .answer:nth-child(4){grid-row:2}
+.board .answer:nth-child(5),.board .answer:nth-child(6){grid-row:3}
+
+/* ===== Enhanced TV motion ===== */
+.scorebox,.roundbox,.logoInner,.question,.board,.strikes,.pot,.timer{
+  will-change:transform,filter,opacity
+}
+body::after{
+  content:"";position:fixed;inset:-35%;pointer-events:none;z-index:0;
+  background:conic-gradient(from 0deg at 50% 50%,transparent 0 34%,rgba(70,154,255,.055) 40%,transparent 46% 68%,rgba(255,211,78,.045) 74%,transparent 81%);
+  animation:ambientSpin 22s linear infinite
+}
+@keyframes ambientSpin{to{transform:rotate(360deg)}}
+.stage{position:relative;z-index:1}
+
+.logoInner{
+  position:relative;overflow:hidden;
+  animation:logoFloat 4s ease-in-out infinite
+}
+.logoInner::after{
+  content:"";position:absolute;top:-80%;bottom:-80%;width:16%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+  transform:skewX(-20deg);animation:logoSweep 4.6s ease-in-out infinite
+}
+@keyframes logoSweep{0%,55%{left:-30%}80%,100%{left:125%}}
+@keyframes logoFloat{50%{transform:translateY(-2px)}}
+
+.question.hidden{
+  overflow:hidden;
+  background:linear-gradient(110deg,#f2b52f,#ffe68b,#f2b52f);
+  background-size:220% 100%;
+  animation:qIdle 2.5s linear infinite
+}
+@keyframes qIdle{to{background-position:220% 0}}
+.question.qReveal{animation:qReveal .65s cubic-bezier(.16,.84,.2,1)}
+.question.qHide{animation:qHide .38s ease}
+@keyframes qReveal{
+  0%{opacity:.25;transform:scale(.94) translateY(-10px);filter:brightness(1.45)}
+  65%{transform:scale(1.025);filter:brightness(1.12)}
+  100%{opacity:1;transform:none;filter:none}
+}
+@keyframes qHide{
+  45%{transform:scale(.97);opacity:.5}
+  100%{transform:none;opacity:1}
+}
+
+.board{
+  position:relative;overflow:hidden;
+  box-shadow:inset 0 0 36px rgba(47,128,224,.14),0 18px 44px rgba(0,0,0,.34)
+}
+.board::before{
+  content:"";position:absolute;inset:-50% -20%;pointer-events:none;
+  background:linear-gradient(115deg,transparent 42%,rgba(91,172,255,.08) 50%,transparent 58%);
+  animation:boardSweep 7s linear infinite
+}
+@keyframes boardSweep{from{transform:translateX(-45%)}to{transform:translateX(45%)}}
+
+.answer{
+  backface-visibility:hidden;
+  box-shadow:0 9px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.35)
+}
+.answer.hidden .cover{
+  background:
+    radial-gradient(circle at 18px 18px,rgba(255,255,255,.10) 2px,transparent 2.7px) 0 0/36px 36px,
+    linear-gradient(180deg,#155eb7,#093a80);
+}
+.answer.hidden .cover::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.12) 48%,transparent 61%);
+  transform:translateX(-120%);
+  animation:coverSweep 3.3s ease-in-out infinite
+}
+@keyframes coverSweep{60%,100%{transform:translateX(120%)}}
+
+.answer.revealAnim{animation:answerReveal .78s cubic-bezier(.15,.82,.18,1)}
+.answer.hideAnim{animation:answerHide .56s ease}
+@keyframes answerReveal{
+  0%{transform:perspective(800px) rotateX(0);filter:brightness(1)}
+  42%{transform:perspective(800px) rotateX(89deg) scale(.98);filter:brightness(1.65)}
+  58%{transform:perspective(800px) rotateX(89deg) scale(.98)}
+  82%{transform:perspective(800px) rotateX(-7deg) scale(1.025);filter:brightness(1.2)}
+  100%{transform:none;filter:none}
+}
+@keyframes answerHide{
+  0%{transform:none}
+  45%{transform:perspective(800px) rotateX(88deg)}
+  100%{transform:none}
+}
+.answer.answerFlash{box-shadow:0 0 0 3px #fff5b0,0 0 34px rgba(255,211,78,.78),0 10px 22px rgba(0,0,0,.3)}
+
+.board.roundEnter .answer{
+  animation:cardEntrance .52s both cubic-bezier(.18,.84,.2,1)
+}
+.board.roundEnter .answer:nth-child(1){animation-delay:.04s}
+.board.roundEnter .answer:nth-child(2){animation-delay:.09s}
+.board.roundEnter .answer:nth-child(3){animation-delay:.14s}
+.board.roundEnter .answer:nth-child(4){animation-delay:.19s}
+.board.roundEnter .answer:nth-child(5){animation-delay:.24s}
+.board.roundEnter .answer:nth-child(6){animation-delay:.29s}
+@keyframes cardEntrance{
+  from{opacity:0;transform:translateY(18px) scale(.96)}
+  to{opacity:1;transform:none}
+}
+
+.score.scoreBump{animation:scoreBump .72s cubic-bezier(.16,.86,.18,1)}
+@keyframes scoreBump{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.38);color:#fff7b5;text-shadow:0 0 24px rgba(255,211,78,.9)}
+  100%{transform:none}
+}
+.pot.potPulse{animation:potPulse .7s ease}
+@keyframes potPulse{
+  45%{transform:scale(1.035);box-shadow:0 0 30px rgba(255,211,78,.55)}
+}
+.x.on{animation:strikeIn .34s cubic-bezier(.16,.84,.2,1)}
+@keyframes strikeIn{0%{transform:scale(.2) rotate(-18deg)}70%{transform:scale(1.13) rotate(3deg)}100%{transform:none}}
+
+.timer.danger{animation:timerDanger .65s infinite}
+@keyframes timerDanger{50%{transform:scale(1.08);box-shadow:0 0 28px rgba(238,51,64,.75)}}
+
+.overlay.show{animation:overlayFade .15s ease}
+@keyframes overlayFade{from{opacity:0}to{opacity:1}}
+.wrong{
+  animation:wrongHit .48s cubic-bezier(.15,.85,.2,1),wrongGlow .7s ease
+}
+@keyframes wrongHit{
+  0%{transform:scale(.18) rotate(-15deg)}
+  65%{transform:scale(1.12) rotate(3deg)}
+  82%{transform:scale(.96) rotate(-1deg)}
+  100%{transform:none}
+}
+@keyframes wrongGlow{50%{box-shadow:0 0 90px rgba(238,51,64,.95)}}
+.buzz{position:relative;animation:buzzHit .38s cubic-bezier(.18,.86,.18,1)}
+.buzz::before,.buzz::after{
+  content:"";position:absolute;inset:-25px;border:4px solid var(--gold);border-radius:40px;opacity:0;
+  animation:buzzRing .8s ease-out
+}
+.buzz::after{animation-delay:.12s}
+@keyframes buzzHit{from{transform:scale(.38)}70%{transform:scale(1.08)}to{transform:none}}
+@keyframes buzzRing{0%{opacity:.85;transform:scale(.75)}100%{opacity:0;transform:scale(1.28)}}
+
+.roundOverlay{
+  position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 45%,rgba(19,75,148,.91),rgba(1,8,21,.95))
+}
+.roundOverlay.show{display:flex}
+.roundSplash{
+  width:min(760px,78vw);padding:38px 42px;text-align:center;
+  border:7px solid var(--gold);border-radius:34px;
+  background:linear-gradient(180deg,#1466c5,#092f68);
+  box-shadow:0 0 85px rgba(255,211,78,.28);
+  animation:roundSplash .82s cubic-bezier(.15,.85,.2,1)
+}
+.roundSplash small{display:block;color:#d8eaff;font-size:19px}
+.roundSplash strong{display:block;color:var(--gold);font-size:clamp(48px,6vw,86px);margin:5px 0;text-shadow:0 6px 0 #704600}
+.roundSplash span{font-size:25px;font-weight:1000}
+@keyframes roundSplash{
+  0%{opacity:0;transform:scale(.55) rotate(-4deg)}
+  65%{opacity:1;transform:scale(1.06) rotate(1deg)}
+  100%{transform:none}
+}
+
+.spark{
+  position:fixed;z-index:55;width:7px;height:7px;border-radius:50%;
+  background:#fff6ac;pointer-events:none;
+  box-shadow:0 0 12px #ffd34e;
+  animation:sparkFly .7s ease-out forwards
+}
+@keyframes sparkFly{
+  to{transform:translate(var(--sx),var(--sy)) scale(.15);opacity:0}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important}
+}
+
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="header">
+    <div class="scorebox"><b id="nameA">الفريق أ</b><span class="score" id="scoreA">0</span></div>
+    <div class="roundbox"><div><small>السؤال <span id="qno">1</span> من <span id="qtotal">0</span></small><strong id="round"></strong><small>النقاط × <span id="mult">1</span></small></div></div>
+    <div class="scorebox"><b id="nameB">الفريق ب</b><span class="score" id="scoreB">0</span></div>
+  </div>
+  <div class="logo"><div class="logoInner"><span>FRIENDS</span>&nbsp; FEUD</div></div>
+  <div class="question hidden" id="question"></div>
+  <div class="board" id="board"></div>
+  <div class="bottom">
+    <div class="strikes"><div class="x" data-i="0">✕</div><div class="x" data-i="1">✕</div><div class="x" data-i="2">✕</div></div>
+    <div class="timer" id="timer">20</div>
+    <div class="pot"><span>نقاط الجولة</span><strong id="pot">0</strong></div>
+  </div>
+</div>
+<div class="overlay" id="wrongO"><div class="wrong">✕</div></div>
+<div class="overlay" id="buzzO"><div class="buzz">🔔 BUZZ!</div></div><div class="roundOverlay" id="roundO"><div class="roundSplash"><small>استعدوا</small><strong id="roundSplashName">الجولة</strong><span id="roundSplashMult">النقاط × 1</span></div></div>
+<div class="start" id="start"><button id="startBtn">ابدأ العرض والصوت</button></div>
+
+<script>
+const DEFAULT_Q=[{"q": "اذكر شيئًا يفعله الناس أول ما يصحون من النوم.", "r": "الجولة الأولى", "m": 1, "a": [["يمسكون الجوال", 28], ["يذهبون للحمام", 22], ["يغسلون وجههم أو أسنانهم", 18], ["يشربون قهوة أو ماء", 13], ["يرجعون ينامون", 11], ["يجهزون للعمل أو الدراسة", 8]]}, {"q": "اذكر سببًا يجعل شخصًا يتأخر عن موعد.", "r": "الجولة الأولى", "m": 1, "a": [["الزحمة", 30], ["تأخر في التجهيز", 23], ["نام زيادة", 17], ["مشكلة في السيارة أو المواقف", 12], ["نسي الوقت", 10], ["كان عنده شغل", 8]]}, {"q": "اذكر شيئًا لا تريد أن تنساه قبل السفر.", "r": "الجولة الأولى", "m": 1, "a": [["الجواز أو الهوية", 30], ["الجوال", 21], ["الشاحن", 18], ["المحفظة أو البطاقات", 14], ["الملابس", 10], ["الأدوية", 7]]}, {"q": "اذكر شيئًا يشتريه الناس رغم أن عندهم منه كثير.", "r": "الجولة الثانية", "m": 1, "a": [["ملابس", 26], ["أحذية", 20], ["عطور", 17], ["أكواب أو زجاجات", 14], ["إكسسوارات", 12], ["أجهزة أو شواحن", 11]]}, {"q": "اذكر شيئًا يفعله الناس وهم ينتظرون في طابور طويل.", "r": "الجولة الثانية", "m": 1, "a": [["يمسكون الجوال", 35], ["يتكلمون مع شخص", 18], ["ينظرون حولهم", 15], ["يتذمرون", 13], ["يتركون الطابور", 10], ["يأكلون أو يشربون", 9]]}, {"q": "اذكر شيئًا قد يسبب خلافًا بين شخصين يسافرون معًا.", "r": "الجولة الثانية", "m": 1, "a": [["اختيار الأماكن", 23], ["المصاريف", 21], ["التأخر", 18], ["وقت النوم والصحيان", 15], ["اختيار الأكل", 13], ["التصوير", 10]]}, {"q": "اذكر شيئًا ينظر إليه الناس قبل اختيار مطعم.", "r": "الجولة الثالثة", "m": 2, "a": [["التقييمات", 25], ["نوع الأكل", 22], ["الأسعار", 18], ["الموقع", 14], ["الصور", 12], ["الانتظار أو الحجز", 9]]}, {"q": "اذكر شيئًا يفعله الناس عندما يشعرون بالملل في البيت.", "r": "الجولة الثالثة", "m": 2, "a": [["يشاهدون مسلسل أو فيلم", 27], ["يمسكون الجوال", 25], ["يأكلون", 15], ["ينامون", 13], ["يلعبون ألعاب", 11], ["يخرجون من البيت", 9]]}, {"q": "اذكر شيئًا قد تجده دائمًا في سيارة شخص.", "r": "الجولة الثالثة", "m": 2, "a": [["مناديل", 24], ["زجاجة ماء", 21], ["شاحن", 18], ["نظارة شمسية", 15], ["إيصالات أو أوراق", 12], ["عطر", 10]]}, {"q": "اذكر شيئًا يتظاهر الناس أنهم يفهمونه أكثر مما يفهمونه فعلًا.", "r": "الجولة الرابعة", "m": 2, "a": [["الاستثمار والأسهم", 24], ["السيارات", 19], ["الرياضة", 17], ["التقنية", 15], ["القهوة", 13], ["السياسة أو الأخبار", 12]]}, {"q": "اذكر شيئًا قد يجعلك تغيّر رأيك في شخص من أول لقاء.", "r": "الجولة الرابعة", "m": 2, "a": [["أسلوبه مع الناس", 25], ["الغرور", 20], ["الرائحة أو النظافة", 17], ["طريقة الكلام", 15], ["التأخر", 12], ["استخدام الجوال كثيرًا", 11]]}, {"q": "اذكر شيئًا يفعله الناس قبل وصول الضيوف بدقائق.", "r": "الجولة الرابعة", "m": 2, "a": [["يرتبون بسرعة", 28], ["يخفون الفوضى", 22], ["يجهزون الأكل أو القهوة", 18], ["يعطرون المكان", 14], ["يغيرون ملابسهم", 10], ["يشغلون الموسيقى أو التلفزيون", 8]]}, {"q": "اذكر شيئًا قد تندم عليه في صباح اليوم التالي بعد سهرة طويلة.", "r": "الجولة الخامسة", "m": 3, "a": [["قلة النوم", 28], ["صرف فلوس كثيرة", 20], ["أكل كثير", 17], ["رسالة أو مكالمة محرجة", 14], ["صور أو فيديوهات", 12], ["موعد بدري", 9]]}, {"q": "اذكر شيئًا لا تحب أن يفتحه أحد في جوالك بدون إذن.", "r": "الجولة الخامسة", "m": 3, "a": [["الصور", 25], ["الرسائل", 23], ["سجل البحث", 19], ["الملاحظات", 13], ["البريد الإلكتروني", 11], ["التطبيقات البنكية", 9]]}, {"q": "اذكر شيئًا يفعله الشخص عندما يحاول أن يبدو مشغولًا.", "r": "الجولة الخامسة", "m": 3, "a": [["يمسك الجوال", 30], ["يفتح اللابتوب", 20], ["يمشي بسرعة", 16], ["يرسل رسائل", 14], ["يتكلم عن الشغل", 11], ["يتظاهر أنه يبحث عن شيء", 9]]}, {"q": "اذكر شيئًا يجعل رحلة بالسيارة أطول مما هي عليه.", "r": "جولة إضافية", "m": 3, "a": [["الزحمة", 30], ["الوقوف المتكرر", 20], ["الطريق الخطأ", 17], ["البحث عن موقف", 13], ["نقاش أين نذهب", 11], ["التوقف للأكل", 9]]}, {"q": "اذكر شيئًا يفعله الناس عندما يكون الحساب في المطعم أعلى من المتوقع.", "r": "جولة إضافية", "m": 3, "a": [["يراجعون الفاتورة", 28], ["يتفاجؤون أو يشتكون", 22], ["يقسمون الحساب", 18], ["يلومون الشخص الذي اختار المكان", 13], ["يدفع شخص واحد", 11], ["يقولون لن نرجع", 8]]}, {"q": "اذكر شيئًا قد يجعلك تلغي طلعة في آخر لحظة.", "r": "جولة إضافية", "m": 3, "a": [["التعب أو النوم", 27], ["ما لي خلق", 22], ["الشغل", 17], ["مشكلة عائلية", 14], ["الزحمة", 11], ["مشكلة في السيارة", 9]]}, {"q": "اذكر شيئًا يلاحظه الناس أولًا عندما يدخلون مناسبة كبيرة.", "r": "جولة إضافية", "m": 3, "a": [["الناس الموجودون", 23], ["المكان والديكور", 21], ["الأكل", 19], ["الملابس", 15], ["الموسيقى", 12], ["التنظيم", 10]]}, {"q": "اذكر شيئًا قد يخفيه الشخص عندما يأتيه ضيوف فجأة.", "r": "جولة إضافية", "m": 3, "a": [["الملابس المرمية", 26], ["الأطباق", 22], ["أغراض شخصية", 17], ["أكياس التسوق أو الكراتين", 14], ["أوراق أو فواتير", 12], ["أشياء على الكنبة أو الطاولة", 9]]}];
+const BANK_KEY='fm1-question-bank-v2';
+function cloneData(x){
+  if(typeof structuredClone==='function')return structuredClone(x);
+  return JSON.parse(JSON.stringify(x));
+}
+let Q=loadBank();
+function loadBank(){try{const x=JSON.parse(localStorage.getItem(BANK_KEY)||'null');if(Array.isArray(x)&&x.length)return x}catch(e){}return cloneData(DEFAULT_Q)}
+const CHANNEL='fm1-github-sync-v4';
+const bc=('BroadcastChannel' in window)?new BroadcastChannel(CHANNEL):null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let S={idx:0,scoreA:0,scoreB:0,strikes:0,revealed:[],qShown:false,timer:20,music:false,teamA:'الفريق أ',teamB:'الفريق ب'},audioOn=false,lastEvent=0;
+const AC=window.AudioContext||window.webkitAudioContext;let ac=null,mTimer=null,bar=0;const BPM=136,BEAT=60/BPM,BAR=BEAT*4;
+
+function ensure(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
+function tone(f,d=.12,type='sine',g=.05,delay=0){if(!audioOn)return;ensure();const o=ac.createOscillator(),a=ac.createGain();o.type=type;o.frequency.value=f;a.gain.setValueAtTime(.001,ac.currentTime+delay);a.gain.linearRampToValueAtTime(g,ac.currentTime+delay+.01);a.gain.exponentialRampToValueAtTime(.001,ac.currentTime+delay+d);o.connect(a).connect(ac.destination);o.start(ac.currentTime+delay);o.stop(ac.currentTime+delay+d+.03)}
+function noise(delay=0,d=.05,g=.012){if(!audioOn)return;ensure();const n=Math.floor(ac.sampleRate*d),b=ac.createBuffer(1,n,ac.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const s=ac.createBufferSource(),a=ac.createGain(),f=ac.createBiquadFilter();s.buffer=b;f.type='highpass';f.frequency.value=3400;a.gain.value=g;s.connect(f).connect(a).connect(ac.destination);s.start(ac.currentTime+delay)}
+function sfx(n){if(n==='answer'){tone(480,.08,'triangle',.07);tone(720,.1,'triangle',.06,.06);tone(960,.14,'triangle',.05,.12)}if(n==='wrong'){tone(145,.35,'sawtooth',.09);tone(100,.42,'square',.045,.08)}if(n==='buzz'){tone(560,.07,'square',.08);tone(760,.08,'square',.07,.08)}if(n==='award'){[392,523,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.05,i*.065))}if(n==='round'){[262,330,392,523,659].forEach((f,i)=>tone(f,.2,'triangle',.045,i*.08))}}
+function musicBar(){if(!S.music||!audioOn)return;const roots=[196,220,174.6,196],r=roots[bar%4];for(let b=0;b<4;b++){tone(r/2,.18,'triangle',.018,b*BEAT);noise(b*BEAT+BEAT/2)}[1,1.25,1.5,2,1.5,1.25,2,1.5].forEach((m,i)=>tone(r*m,.1,'square',.012,i*BEAT/2));[2,2.5,3,4].forEach((m,i)=>tone(r*m,.15,'triangle',.017,i*BEAT+.03));bar++}
+function setMusic(on){clearInterval(mTimer);if(on&&audioOn){bar=0;musicBar();mTimer=setInterval(musicBar,BAR*1000)}}
+
+function pot(){const q=Q[S.idx];return q.a.reduce((s,x,i)=>s+(S.revealed.includes(i)?x[1]*q.m:0),0)}
+function render(){Q=loadBank();S.idx=Math.max(0,Math.min(S.idx,Q.length-1));const q=Q[S.idx];$('#qtotal').textContent=Q.length;$('#nameA').textContent=S.teamA;$('#nameB').textContent=S.teamB;$('#scoreA').textContent=S.scoreA;$('#scoreB').textContent=S.scoreB;$('#qno').textContent=S.idx+1;$('#round').textContent=q.r;$('#mult').textContent=q.m;$('#timer').textContent=S.timer;$('#timer').classList.toggle('danger',S.timer<=5);$('#pot').textContent=pot();$('#question').textContent=S.qShown?q.q:'';$('#question').classList.toggle('hidden',!S.qShown);const root=$('#board');root.innerHTML='';q.a.forEach(([t,p],i)=>{
+  const d=document.createElement('div');
+  d.dataset.index=i;
+  d.className='answer '+(S.revealed.includes(i)&&t?'':'hidden')+(!t?' empty':'');
+  d.innerHTML=`<div class="num">${i+1}</div><div class="text">${t||''}</div><div class="pts">${t?p*q.m:''}</div><div class="cover">${t?i+1:''}</div>`;
+  if(!t)d.style.visibility='hidden';
+  root.appendChild(d)
+});$$('.x').forEach((x,i)=>x.classList.toggle('on',i<S.strikes))}
+function applyState(s){S=s;render();setMusic(S.music)}
+
+function animateQuestion(show){
+  const q=$('#question');q.classList.remove('qReveal','qHide');void q.offsetWidth;
+  q.classList.add(show?'qReveal':'qHide');
+  setTimeout(()=>q.classList.remove('qReveal','qHide'),750)
+}
+function animateAnswer(i,show){
+  const el=$(`#board .answer[data-index="${i}"]`);if(!el)return;
+  el.classList.remove('revealAnim','hideAnim','answerFlash');void el.offsetWidth;
+  el.classList.add(show?'revealAnim':'hideAnim');
+  if(show){
+    setTimeout(()=>el.classList.add('answerFlash'),470);
+    setTimeout(()=>el.classList.remove('answerFlash'),950);
+    sparksFrom(el)
+  }
+  setTimeout(()=>el.classList.remove('revealAnim','hideAnim'),900)
+}
+function sparksFrom(el){
+  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(let i=0;i<12;i++){
+    const s=document.createElement('div');s.className='spark';
+    s.style.left=(cx-3)+'px';s.style.top=(cy-3)+'px';
+    const a=(Math.PI*2*i/12)+(Math.random()*.25);
+    const dist=45+Math.random()*75;
+    s.style.setProperty('--sx',Math.cos(a)*dist+'px');
+    s.style.setProperty('--sy',Math.sin(a)*dist+'px');
+    document.body.appendChild(s);setTimeout(()=>s.remove(),800)
+  }
+}
+function animateRound(){
+  const q=Q[S.idx];
+  $('#roundSplashName').textContent=q.r;
+  $('#roundSplashMult').textContent='النقاط × '+q.m;
+  $('#roundO').classList.add('show');
+  const b=$('#board');b.classList.remove('roundEnter');void b.offsetWidth;b.classList.add('roundEnter');
+  setTimeout(()=>b.classList.remove('roundEnter'),1100);
+  setTimeout(()=>$('#roundO').classList.remove('show'),1450)
+}
+function animateAward(team){
+  const scoreEl=team==='A'?$('#scoreA'):$('#scoreB');
+  scoreEl.classList.remove('scoreBump');void scoreEl.offsetWidth;scoreEl.classList.add('scoreBump');
+  $('#pot').parentElement.classList.remove('potPulse');void $('#pot').parentElement.offsetWidth;$('#pot').parentElement.classList.add('potPulse');
+  setTimeout(()=>scoreEl.classList.remove('scoreBump'),800)
+}
+
+function handleEvent(e){
+  if(!e||e.id===lastEvent)return;
+  lastEvent=e.id;
+  if(e.name==='answer'){animateAnswer(e.data.i,!!e.data.show);sfx('answer')}
+  if(e.name==='question'){animateQuestion(!!e.data.show);sfx('answer')}
+  if(e.name==='all'){
+    Q[S.idx].a.forEach((x,i)=>{if(x[0])setTimeout(()=>animateAnswer(i,!!e.data.show),i*70)})
+  }
+  if(e.name==='wrong'){
+    sfx('wrong');$('#wrongO').classList.add('show');
+    setTimeout(()=>$('#wrongO').classList.remove('show'),780)
+  }
+  if(e.name==='buzz'){
+    sfx('buzz');$('#buzzO').classList.add('show');
+    setTimeout(()=>$('#buzzO').classList.remove('show'),720)
+  }
+  if(e.name==='award'){sfx('award');animateAward(e.data.team);confetti(85)}
+  if(e.name==='round'){sfx('round');animateRound()}
+  if(e.name==='reset'){
+    const b=$('#board');b.classList.remove('roundEnter');void b.offsetWidth;b.classList.add('roundEnter');
+    setTimeout(()=>b.classList.remove('roundEnter'),900)
+  }
+  if(e.name==='music')setMusic(e.data.on)
+}
+function confetti(n){const c=['#ffd34e','#56c6ff','#ef3340','#26c76f','#fff','#7657ff'];for(let i=0;i<n;i++){const d=document.createElement('div');d.className='conf';d.style.left=Math.random()*100+'vw';d.style.background=c[Math.floor(Math.random()*c.length)];d.style.setProperty('--d',(Math.random()*260-130)+'px');d.style.animationDuration=(2.2+Math.random()*2)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
+
+if(bc)bc.onmessage=e=>{if(e.data?.type==='state')applyState(e.data);if(e.data?.type==='event')handleEvent(e.data)};
+window.addEventListener('storage',e=>{try{const d=JSON.parse(e.newValue||'null');if(e.key===CHANNEL&&d?.type==='state')applyState(d);if(e.key===CHANNEL+'-event'&&d?.type==='event')handleEvent(d)}catch(err){}});
+setInterval(()=>{try{const s=JSON.parse(localStorage.getItem(CHANNEL)||'null');if(s?.type==='state')applyState(s);const e=JSON.parse(localStorage.getItem(CHANNEL+'-event')||'null');if(e?.type==='event')handleEvent(e)}catch(err){}},350);
+
+$('#startBtn').onclick=()=>{audioOn=true;ensure();$('#start').style.display='none';bc?.postMessage({type:'hello'});try{const s=JSON.parse(localStorage.getItem(CHANNEL)||'null');if(s?.type==='state')applyState(s)}catch(e){}};
+$('#wrongO').onclick=()=>$('#wrongO').classList.remove('show');$('#buzzO').onclick=()=>$('#buzzO').classList.remove('show');$('#roundO').onclick=()=>$('#roundO').classList.remove('show');
+render();
+</script>
+</body>
+</html>
