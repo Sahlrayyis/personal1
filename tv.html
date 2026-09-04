@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FM1 | TV</title>
+<style>
+:root{--night:#020815;--navy:#061733;--blue:#1057b7;--blue2:#0a3b80;--gold:#ffd34e;--red:#ee3340;--white:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif;background:var(--night);color:white}
+body{background:radial-gradient(circle at 50% -15%,#1c62b8 0,#0a2b5e 26%,#061733 55%,#020815 100%)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.024) 1px,transparent 1px);background-size:44px 44px}
+.stage{width:100vw;height:100vh;padding:10px 12px;display:grid;grid-template-rows:84px 70px 82px minmax(0,1fr) 70px;gap:8px}
+.header{display:grid;grid-template-columns:1fr 1.18fr 1fr;gap:10px;direction:ltr}
+.scorebox,.roundbox{border:4px solid var(--gold);border-radius:20px;background:linear-gradient(180deg,#1561bc,#0a3677);box-shadow:0 12px 28px rgba(0,0,0,.34);direction:rtl}
+.scorebox{display:flex;align-items:center;justify-content:center;gap:18px} .scorebox b{color:var(--gold);font-size:20px} .score{font-size:46px;font-weight:1000}
+.roundbox{display:flex;align-items:center;justify-content:center;text-align:center} .roundbox small{display:block;color:#d9eaff;font-size:14px} .roundbox strong{display:block;color:var(--gold);font-size:27px;line-height:1.1;margin:2px 0}
+.logo{display:flex;align-items:center;justify-content:center} .logoInner{height:58px;min-width:min(520px,48vw);padding:4px 28px;border:5px solid var(--gold);border-radius:999px;background:linear-gradient(#176fd1,#0b3e84);display:flex;align-items:center;justify-content:center;font-size:39px;font-weight:1000;letter-spacing:.5px;box-shadow:0 0 0 5px #754900,0 12px 30px rgba(0,0,0,.38)} .logoInner span{color:var(--gold)}
+.question{border:4px solid var(--gold);border-radius:18px;background:linear-gradient(#ffe68b,#f2b52f);color:#08224e;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px 20px;font-size:29px;font-weight:1000;line-height:1.25;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+.question.hidden{color:transparent;position:relative} .question.hidden:after{content:"استعدوا للسؤال...";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#345784;font-size:23px}
+.board{min-height:0;border:4px solid #2b65ac;border-radius:22px;background:linear-gradient(#082b62,#041a3d);padding:10px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,minmax(0,1fr));gap:10px;direction:ltr}
+.answer{position:relative;overflow:hidden;border:3px solid var(--gold);border-radius:14px;background:linear-gradient(#eef7ff,#c7defb);min-height:0;display:grid;grid-template-columns:64px minmax(0,1fr) 78px;align-items:center;color:#08224e;direction:rtl;transform-style:preserve-3d}
+.num,.pts{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(#14519e,#082e68);font-weight:1000;font-size:27px} .num{color:#fff} .pts{color:var(--gold)}
+.text{padding:7px 13px;font-size:clamp(18px,1.7vw,26px);font-weight:1000;text-align:right;line-height:1.2}
+.answer.hidden{background:linear-gradient(#1557aa,#0a3475)}
+.answer.hidden .num,.answer.hidden .text,.answer.hidden .pts{visibility:hidden}
+.answer.hidden .cover{display:flex}
+.cover{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(#1557aa,#0a3475);color:var(--gold);font-size:38px;font-weight:1000;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.answer.anim{animation:flip .62s ease} @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(88deg)}100%{transform:none}}
+.bottom{display:grid;grid-template-columns:1fr 80px 1fr;gap:10px;align-items:center;direction:ltr}
+.strikes,.pot{height:62px;border:4px solid var(--gold);border-radius:16px;background:linear-gradient(#0e4e9d,#082f69);display:flex;align-items:center;justify-content:center;gap:11px;direction:rtl}
+.x{width:44px;height:44px;border-radius:9px;border:2px solid rgba(255,255,255,.42);display:flex;align-items:center;justify-content:center;font-size:31px;color:transparent} .x.on{background:var(--red);border-color:#fff;color:#fff}
+.timer{width:66px;height:66px;border-radius:50%;border:4px solid var(--gold);background:#092f69;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:1000} .timer.danger{background:var(--red);border-color:#fff}
+.pot span{font-size:13px;color:#dcecff} .pot strong{font-size:31px;color:var(--gold)}
+.overlay{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.68)} .overlay.show{display:flex} .wrong{width:min(520px,70vw);aspect-ratio:1.25;border-radius:32px;border:8px solid #fff;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:230px;font-weight:1000;text-shadow:0 8px 0 #7b1119;animation:pop .4s ease} .buzz{padding:38px 70px;border-radius:28px;border:8px solid var(--gold);background:#fff;color:#08245a;font-size:72px;font-weight:1000;animation:pop .3s ease} @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.start{position:fixed;inset:0;z-index:60;background:radial-gradient(circle,#123f7e,#020815 70%);display:flex;align-items:center;justify-content:center} .start button{border:5px solid var(--gold);border-radius:22px;background:#1057b7;color:#fff;padding:22px 34px;font-size:27px;font-weight:1000;cursor:pointer;box-shadow:0 0 45px rgba(255,211,78,.28)}
+.conf{position:fixed;top:-20px;z-index:45;width:10px;height:18px;animation:fall linear forwards} @keyframes fall{to{transform:translate(var(--d),110vh) rotate(920deg)}}
+@media(max-height:760px){.stage{grid-template-rows:70px 56px 66px minmax(0,1fr) 58px;gap:6px;padding:7px 9px}.scorebox b{font-size:16px}.score{font-size:37px}.roundbox strong{font-size:22px}.logoInner{height:48px;font-size:32px}.question{font-size:23px}.board{padding:7px;gap:7px}.text{font-size:18px}.bottom{grid-template-columns:1fr 68px 1fr}.strikes,.pot{height:54px}.timer{width:56px;height:56px;font-size:24px}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="header">
+    <div class="scorebox"><b id="nameA">الفريق أ</b><span class="score" id="scoreA">0</span></div>
+    <div class="roundbox"><div><small>السؤال <span id="qno">1</span> من 20</small><strong id="round"></strong><small>النقاط × <span id="mult">1</span></small></div></div>
+    <div class="scorebox"><b id="nameB">الفريق ب</b><span class="score" id="scoreB">0</span></div>
+  </div>
+  <div class="logo"><div class="logoInner"><span>FRIENDS</span>&nbsp; FEUD</div></div>
+  <div class="question hidden" id="question"></div>
+  <div class="board" id="board"></div>
+  <div class="bottom">
+    <div class="strikes"><div class="x" data-i="0">✕</div><div class="x" data-i="1">✕</div><div class="x" data-i="2">✕</div></div>
+    <div class="timer" id="timer">20</div>
+    <div class="pot"><span>نقاط الجولة</span><strong id="pot">0</strong></div>
+  </div>
+</div>
+<div class="overlay" id="wrongO"><div class="wrong">✕</div></div>
+<div class="overlay" id="buzzO"><div class="buzz">🔔 BUZZ!</div></div>
+<div class="start" id="start"><button id="startBtn">ابدأ العرض والصوت</button></div>
+
+<script>
+const Q=[{"q": "ما أشهر عذر يقوله الشخص إذا كان متأخرًا على الطلعة؟", "r": "الجولة الأولى", "m": 1, "a": [["أنا بالطريق", 34], ["خمس دقايق وأوصل", 23], ["الزحمة", 16], ["كنت أجهز", 12], ["ما شفت الرسالة", 9], ["كنت أدور موقف", 6]]}, {"q": "ما الشيء الذي قد يفضح أن الشخص غير مرتب رغم أنه يقول العكس؟", "r": "الجولة الأولى", "m": 1, "a": [["سيارته", 26], ["غرفته", 22], ["شنطته", 17], ["دولابه", 14], ["مكتبه", 12], ["جواله", 9]]}, {"q": "لو قال لك صاحبك: «ثق فيني، أعرف مكان رهيب»... ما أكثر شيء تخاف منه؟", "r": "الجولة الأولى", "m": 1, "a": [["يكون بعيد جدًا", 26], ["يكون غالي", 22], ["الأكل يطلع سيئ", 18], ["ما فيه مواقف", 14], ["يكون زحمة", 11], ["يكون مقفل", 9]]}, {"q": "ما الشيء الذي يمكن أن يحول شخصًا هادئًا إلى عصبي خلال دقيقة؟", "r": "الجولة الثانية", "m": 1, "a": [["الجوع", 29], ["الزحمة", 22], ["قلة النوم", 18], ["أحد أخذ أغراضه", 13], ["خسارة مباراة", 10], ["انقطاع الإنترنت", 8]]}, {"q": "ما الشيء الذي لا تريد من صاحبك أن يفتحه في جوالك أمام الناس؟", "r": "الجولة الثانية", "m": 1, "a": [["الصور", 28], ["الواتساب", 22], ["سجل البحث", 18], ["الملاحظات", 13], ["الرسائل الخاصة", 11], ["قائمة الأغاني", 8]]}, {"q": "ما أسوأ صفة ممكن تكون في شخص تسافر معه؟", "r": "الجولة الثانية", "m": 1, "a": [["يتأخر دائمًا", 24], ["ما يعجبه شيء", 21], ["يحسب كل ريال", 18], ["يغير الخطة باستمرار", 15], ["يصور كل شيء", 12], ["يصحي الجميع بدري", 10]]}, {"q": "متى تعرف أن «قهوة سريعة» لن تكون سريعة أبدًا؟", "r": "الجولة الثالثة", "m": 2, "a": [["تبدأ السوالف", 27], ["يجتمع عدد أكبر", 22], ["أحد يقول نجلس شوي", 18], ["يطلبون أكل", 14], ["يوصل شخص متأخر", 11], ["يقررون يروحون مكان ثاني", 8]]}, {"q": "ما أكثر موضوع بسيط يتحول فجأة إلى نقاش كبير بين الأصدقاء؟", "r": "الجولة الثالثة", "m": 2, "a": [["تقسيم الفاتورة", 26], ["اختيار المكان", 22], ["الأغاني", 17], ["مين يسوق", 14], ["قوانين اللعبة", 12], ["آخر قطعة أكل", 9]]}, {"q": "لو صحيت ولقيت 60 رسالة في القروب، ما أكثر شيء تتوقع أنه حصل؟", "r": "الجولة الثالثة", "m": 2, "a": [["مشكلة بين شخصين", 25], ["تغيير في الخطة", 22], ["صورة أو فيديو محرج", 18], ["نقاش كورة", 14], ["تخطيط لسفر", 12], ["ولا شيء مهم", 9]]}, {"q": "ما أول علامة تكشف أن شخصًا معجب بشخص آخر؟", "r": "الجولة الرابعة", "m": 2, "a": [["يناظره كثير", 26], ["يضحك على كل كلامه", 22], ["يجيب طاريه كثير", 18], ["يتوتر حوله", 14], ["يرد عليه بسرعة", 11], ["يعرف عنه تفاصيل كثيرة", 9]]}, {"q": "ما الشيء الذي قد يجعلك تغير رأيك في شخص جذاب خلال خمس دقائق؟", "r": "الجولة الرابعة", "m": 2, "a": [["أسلوبه سيئ", 27], ["مغرور", 21], ["يعامل الناس بشكل سيئ", 18], ["رائحته سيئة", 14], ["يتكلم عن نفسه فقط", 11], ["ممل جدًا", 9]]}, {"q": "ما أسوأ شيء ممكن يحصل وأنت تحاول تبان كول؟", "r": "الجولة الرابعة", "m": 2, "a": [["تتعثر أو تطيح", 27], ["تقول نكتة وما أحد يضحك", 22], ["تنادي شخص باسم غلط", 17], ["يطلع منك صوت محرج", 14], ["يرن جوالك بنغمة محرجة", 11], ["يطيح منك شيء", 9]]}, {"q": "ما الشيء الذي غالبًا يضيع في أي تجمع كبير؟", "r": "الجولة الخامسة", "m": 3, "a": [["الشاحن", 24], ["الشبشب", 21], ["الجاكيت", 18], ["الكوب", 15], ["المفاتيح", 12], ["النظارة", 10]]}, {"q": "لو أعطينا كل شخص في المجموعة مليون ريال، ما أول شيء تتوقع أن يفعله أغلبهم؟", "r": "الجولة الخامسة", "m": 3, "a": [["يسافر", 27], ["يشتري سيارة", 22], ["يشتري بيت", 18], ["يستثمر", 14], ["يعطي أهله", 11], ["يختفي عن القروب", 8]]}, {"q": "ما الجملة التي لو قالها السائق تبدأ تقلق فورًا؟", "r": "الجولة الخامسة", "m": 3, "a": [["أعتقد هذا الطريق", 26], ["البنزين قرب يخلص", 21], ["في صوت غريب", 18], ["لا تخاف", 14], ["وين الفرامل؟", 12], ["ما أشوف كويس", 9]]}, {"q": "ما أكثر شيء يكشف شخصية الشخص أثناء السفر؟", "r": "جولة إضافية", "m": 3, "a": [["الالتزام بالوقت", 23], ["طريقة صرفه", 21], ["النظافة", 19], ["النوم والصحيان", 15], ["اختيارات الأكل", 12], ["التعامل مع الضغط", 10]]}, {"q": "ما الأكلة التي تقول عنها «باخذ شوي بس» ثم تأكل منها كثيرًا؟", "r": "جولة إضافية", "m": 3, "a": [["البطاطس", 27], ["الحلى", 23], ["البيتزا", 18], ["الفشار", 13], ["الشيبس", 11], ["الآيس كريم", 8]]}, {"q": "ما أكثر شيء قد يجعلك تقول لأصحابك: «هذه آخر مرة أطلع معكم»؟", "r": "جولة إضافية", "m": 3, "a": [["تأخروا كثير", 24], ["دفعت أكثر من الباقين", 21], ["غيروا الخطة أكثر من مرة", 18], ["صار خلاف", 15], ["رجعت متأخر جدًا", 12], ["المكان طلع سيئ", 10]]}, {"q": "ما أول علامة تخليك تقول عن شخص صغير بالعمر: «هذا صار شايب»؟", "r": "جولة إضافية", "m": 3, "a": [["يحب ينام بدري", 24], ["يرفض الطلعات المتأخرة", 21], ["يشتكي من ظهره", 18], ["يحب الجلسات الهادية", 15], ["يهتم بالمواقف أكثر من المكان", 12], ["يقول دائمًا بكرة دوام", 10]]}, {"q": "ما الشيء الذي يفعله الناس فقط لأنه صار ترند؟", "r": "جولة إضافية", "m": 3, "a": [["تجربة مطعم أو كافيه", 24], ["شراء منتج", 21], ["تصوير شيء معين", 18], ["مشاهدة مسلسل", 15], ["طلب مشروب مشهور", 12], ["استخدام كلمة أو عبارة", 10]]}];
+const CHANNEL='fm1-github-sync-v4';
+const bc=('BroadcastChannel' in window)?new BroadcastChannel(CHANNEL):null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let S={idx:0,scoreA:0,scoreB:0,strikes:0,revealed:[],qShown:false,timer:20,music:false,teamA:'الفريق أ',teamB:'الفريق ب'},audioOn=false,lastEvent=0;
+const AC=window.AudioContext||window.webkitAudioContext;let ac=null,mTimer=null,bar=0;const BPM=136,BEAT=60/BPM,BAR=BEAT*4;
+
+function ensure(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
+function tone(f,d=.12,type='sine',g=.05,delay=0){if(!audioOn)return;ensure();const o=ac.createOscillator(),a=ac.createGain();o.type=type;o.frequency.value=f;a.gain.setValueAtTime(.001,ac.currentTime+delay);a.gain.linearRampToValueAtTime(g,ac.currentTime+delay+.01);a.gain.exponentialRampToValueAtTime(.001,ac.currentTime+delay+d);o.connect(a).connect(ac.destination);o.start(ac.currentTime+delay);o.stop(ac.currentTime+delay+d+.03)}
+function noise(delay=0,d=.05,g=.012){if(!audioOn)return;ensure();const n=Math.floor(ac.sampleRate*d),b=ac.createBuffer(1,n,ac.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const s=ac.createBufferSource(),a=ac.createGain(),f=ac.createBiquadFilter();s.buffer=b;f.type='highpass';f.frequency.value=3400;a.gain.value=g;s.connect(f).connect(a).connect(ac.destination);s.start(ac.currentTime+delay)}
+function sfx(n){if(n==='answer'){tone(480,.08,'triangle',.07);tone(720,.1,'triangle',.06,.06);tone(960,.14,'triangle',.05,.12)}if(n==='wrong'){tone(145,.35,'sawtooth',.09);tone(100,.42,'square',.045,.08)}if(n==='buzz'){tone(560,.07,'square',.08);tone(760,.08,'square',.07,.08)}if(n==='award'){[392,523,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.05,i*.065))}if(n==='round'){[262,330,392,523,659].forEach((f,i)=>tone(f,.2,'triangle',.045,i*.08))}}
+function musicBar(){if(!S.music||!audioOn)return;const roots=[196,220,174.6,196],r=roots[bar%4];for(let b=0;b<4;b++){tone(r/2,.18,'triangle',.018,b*BEAT);noise(b*BEAT+BEAT/2)}[1,1.25,1.5,2,1.5,1.25,2,1.5].forEach((m,i)=>tone(r*m,.1,'square',.012,i*BEAT/2));[2,2.5,3,4].forEach((m,i)=>tone(r*m,.15,'triangle',.017,i*BEAT+.03));bar++}
+function setMusic(on){clearInterval(mTimer);if(on&&audioOn){bar=0;musicBar();mTimer=setInterval(musicBar,BAR*1000)}}
+
+function pot(){const q=Q[S.idx];return q.a.reduce((s,x,i)=>s+(S.revealed.includes(i)?x[1]*q.m:0),0)}
+function render(){const q=Q[S.idx];$('#nameA').textContent=S.teamA;$('#nameB').textContent=S.teamB;$('#scoreA').textContent=S.scoreA;$('#scoreB').textContent=S.scoreB;$('#qno').textContent=S.idx+1;$('#round').textContent=q.r;$('#mult').textContent=q.m;$('#timer').textContent=S.timer;$('#timer').classList.toggle('danger',S.timer<=5);$('#pot').textContent=pot();$('#question').textContent=S.qShown?q.q:'';$('#question').classList.toggle('hidden',!S.qShown);const root=$('#board');root.innerHTML='';q.a.forEach(([t,p],i)=>{const d=document.createElement('div');d.className='answer '+(S.revealed.includes(i)?'':'hidden');d.innerHTML=`<div class="num">${i+1}</div><div class="text">${t}</div><div class="pts">${p*q.m}</div><div class="cover">${i+1}</div>`;root.appendChild(d)});$$('.x').forEach((x,i)=>x.classList.toggle('on',i<S.strikes))}
+function applyState(s){S=s;render();setMusic(S.music)}
+function handleEvent(e){if(!e||e.id===lastEvent)return;lastEvent=e.id;if(e.name==='answer'){const el=$('#board').children[e.data.i];if(el){el.classList.add('anim');setTimeout(()=>el.classList.remove('anim'),650)}sfx('answer')}if(e.name==='wrong'){sfx('wrong');$('#wrongO').classList.add('show');setTimeout(()=>$('#wrongO').classList.remove('show'),700)}if(e.name==='buzz'){sfx('buzz');$('#buzzO').classList.add('show');setTimeout(()=>$('#buzzO').classList.remove('show'),600)}if(e.name==='award'){sfx('award');confetti(65)}if(e.name==='round')sfx('round');if(e.name==='music')setMusic(e.data.on)}
+function confetti(n){const c=['#ffd34e','#56c6ff','#ef3340','#26c76f','#fff','#7657ff'];for(let i=0;i<n;i++){const d=document.createElement('div');d.className='conf';d.style.left=Math.random()*100+'vw';d.style.background=c[Math.floor(Math.random()*c.length)];d.style.setProperty('--d',(Math.random()*260-130)+'px');d.style.animationDuration=(2.2+Math.random()*2)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}}
+
+if(bc)bc.onmessage=e=>{if(e.data?.type==='state')applyState(e.data);if(e.data?.type==='event')handleEvent(e.data)};
+window.addEventListener('storage',e=>{try{const d=JSON.parse(e.newValue||'null');if(e.key===CHANNEL&&d?.type==='state')applyState(d);if(e.key===CHANNEL+'-event'&&d?.type==='event')handleEvent(d)}catch(err){}});
+setInterval(()=>{try{const s=JSON.parse(localStorage.getItem(CHANNEL)||'null');if(s?.type==='state')applyState(s);const e=JSON.parse(localStorage.getItem(CHANNEL+'-event')||'null');if(e?.type==='event')handleEvent(e)}catch(err){}},350);
+
+$('#startBtn').onclick=()=>{audioOn=true;ensure();$('#start').style.display='none';bc?.postMessage({type:'hello'});try{const s=JSON.parse(localStorage.getItem(CHANNEL)||'null');if(s?.type==='state')applyState(s)}catch(e){}};
+$('#wrongO').onclick=()=>$('#wrongO').classList.remove('show');$('#buzzO').onclick=()=>$('#buzzO').classList.remove('show');
+render();
+</script>
+</body>
+</html>
